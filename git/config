@@ -1,0 +1,10 @@
+[core]
+	bare = false
+	repositoryformatversion = 0
+	filemode = true
+	ignorecase = true
+	precomposeunicode = true
+	logallrefupdates = true
+[remote "origin"]
+	url = https://github.com/Verocc18/PositiveChartsToricVarieties.jl
+	fetch = +refs/heads/*:refs/remotes/origin/*
