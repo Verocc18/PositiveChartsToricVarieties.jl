@@ -9,7 +9,7 @@ PositiveChartsToricVarieties is a Julia package to compute positive charts of to
 using Pkg
 Pkg.add("PositiveChartsToricVarieties")
 ```
-SagbiHomotopy is supported on Julia 1.12 and later.
+PositiveChartsToricVarieties is supported on Julia 1.12 and later.
 
 ## Example
 
