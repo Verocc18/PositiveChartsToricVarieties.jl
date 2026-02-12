@@ -1,0 +1,17 @@
+name = "PositiveChartsToricVarieties"
+uuid = "055cc933-8b1f-435f-a5f5-b5788e050b7b"
+version = "1.0.0-DEV"
+authors = ["Veronica Calvo Cortes and Simon Telen"]
+
+[deps]
+Oscar = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
+
+[compat]
+Oscar = "1.6.0"
+julia = "1.10.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
