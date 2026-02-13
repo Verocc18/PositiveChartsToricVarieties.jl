@@ -269,7 +269,7 @@ function test_sat_conjecture(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     if typeof(input) == Polyhedron{QQFieldElem}
         P = input
         f, M, F = unimod_nef_polynomials(P)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,1),:z=>1:1)
+        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
         hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
         J = ideal(hompols.-1)
         I = eliminate(J+ideal([y[1]*z[1]-1]),z)
@@ -280,7 +280,7 @@ function test_sat_conjecture(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     elseif typeof(input) == Vector{QQMPolyRingElem}
         f = input
         M,F = unimod_matrix_from_polynomials(f)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,1),:z=>1:1)
+        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
         hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
         J = ideal(hompols.-1)
         I = eliminate(J+ideal([y[1]*z[1]-1]),z)
