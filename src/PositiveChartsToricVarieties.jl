@@ -16,7 +16,7 @@ unimod_matrix_from_polynomials,
 unimod_nef_polynomials,
 unimod_matrix,
 test_sat_conjecture,
-parametrization_Y,
+parameterization_Y,
 Y_variety
 
 include("NefCone.jl")
