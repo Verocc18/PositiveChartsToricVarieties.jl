@@ -7,7 +7,7 @@
 # D                   Vector{QQFieldElem} 
 function get_divisor(P::Polyhedron, F::ZZMatrix)
     V = vertices(P)
-    -[minimum([transpose(F[i,:])*v for v in V]) for i = 1:size(F,1)]
+    -[minimum([transpose(F[:,i])*v for v in V]) for i = 1:size(F,2)]
 end
 
 # Homogenizes a polynomial g to the cox ring
@@ -19,8 +19,8 @@ end
 # g^h       QQMPolyRingElem
 function homogenize(g::QQMPolyRingElem, F::ZZMatrix; cox_vars = [])
     D = get_divisor(newton_polytope(g),F)
-    k = size(F,1)
-    exps = [Int.([transpose(F[i,:])*m+D[i] for i = 1:k]) for m in exponents(g)]
+    k = size(F,2)
+    exps = [Int.([transpose(F[:,i])*m+D[i] for i = 1:k]) for m in exponents(g)]
     coeffs = collect(coefficients(g))
     if isempty(cox_vars)
         S, y = polynomial_ring(QQ,:y=>1:k)
@@ -100,8 +100,8 @@ function nef_cone_modulo_lineality(P::Polyhedron)
 
 
     #Put max cone at beginning
-    F = matrix(ZZ,vcat(raysP...))
-    F0 = F[1:dim(P),:]
+    F = transpose(matrix(ZZ,vcat(raysP...)))
+    F0 = F[:,1:dim(P)]
     swapped = false
     if det(F0) == 0
         swapped = true
@@ -111,13 +111,13 @@ function nef_cone_modulo_lineality(P::Polyhedron)
         newOrder = vcat(maxCone1, setdiff(1:length(raysP), maxCone1))
         orderedRaysP = [raysP[newOrder[i]] for i = 1:length(newOrder)]
         orderedOffset = [offset[newOrder[i]] for i = 1:length(newOrder)]
-        F = matrix(ZZ,vcat(orderedRaysP...))
+        F = transpose(matrix(ZZ,vcat(orderedRaysP...)))
         offset = orderedOffset
     end
     
 
     #Compute nef cone
-    return Cx_cone(F, offset), F
+    return Cx_cone(transpose(F), offset), F
     
 end    
 
@@ -128,9 +128,9 @@ end
 # ------------------- Output:
 # f                   QQMPolyRingElem (polynomial with all coefficients 1 and support the polytope of D) 
 function nef_to_polynomial(D,F::ZZMatrix)
-    d = size(F,2)
+    d = size(F,1)
     R, t = polynomial_ring(QQ,:t=>1:d)
-    PD = polyhedron(-F, -D)
+    PD = polyhedron(-transpose(F), D)
     LPD = [Array(L) for L in lattice_points(PD)]
     minLP = [minimum([L[i] for L in LPD]) for i = 1:d]
     LPDt = [L - minLP for L in LPD]
@@ -194,10 +194,10 @@ function unimod_matrix_from_polytope(P::Polyhedron)
     end
 
     subraysNef = raysNef[inds,:]
-    M = vcat(transpose(F),subraysNef)
+    M = vcat(F,subraysNef)
     F0 = M[1:d,1:d]
     A1 = M[(d+1):size(M,1),1:d]
-    T = hcat(vcat(identity_matrix(ZZ,d), A1*inv(F0)), vcat(zero_matrix(ZZ,d,n-d), -identity_matrix(ZZ,n-d)))
+    T = hcat(vcat(identity_matrix(ZZ,d), -A1*inv(F0)), vcat(zero_matrix(ZZ,d,n-d), identity_matrix(ZZ,n-d)))
     M = T*M
     return M, F
 end
@@ -244,9 +244,9 @@ function unimod_matrix_from_polynomials(f::Vector{QQMPolyRingElem})
     end
     Σ = normal_fan(P)
     primraygens = [ρ.*lcm(denominator.(ρ)) for ρ in rays(Σ)]
-    F = transpose(matrix(ZZ,hcat(primraygens...)))
+    F = matrix(ZZ,hcat(primraygens...))
     divisors = [get_divisor(newton_polytope(ff),F) for ff in f]
-    M = hcat(F,matrix(ZZ,hcat(divisors...)))
+    M = vcat(F,matrix(ZZ,transpose(hcat(divisors...))))
     if abs(det(M)) != 1
         return error("The given polynomials do not define a smooth subcone of the nef cone.")
     end
@@ -292,18 +292,18 @@ function test_sat_conjecture(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
 end
 
 # Given a polytope or a list of polynomials returns our parametrization \varphi
-function parametrization_Y(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
+function parameterization_Y(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     if typeof(input) == Polyhedron{QQFieldElem}
         P = input
         f, M, F = unimod_nef_polynomials(P)
     elseif typeof(input) == Vector{QQMPolyRingElem}
         f = input
-        M,F = unimod_matrix_from_polynomials(f)
     end
+    M,F = unimod_matrix_from_polynomials(f)
     R = f[1].parent
     K = fraction_field(R)
     Minv = inv(matrix_space(ZZ,size(M)...)(M))
-    varphi = [prod(K.([gens(R);K.(f)]).^Minv[i,:]) for i = 1:size(M,1)]
+    varphi = [prod(K.([gens(R);1 .//K.(f)]).^Minv[i,:]) for i = 1:size(M,1)]
     return varphi
 end
 
@@ -312,14 +312,14 @@ function Y_variety(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     if typeof(input) == Polyhedron{QQFieldElem}
         P = input
         f, M, F = unimod_nef_polynomials(P)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,1),:z=>1:1)
+        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
         hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
         J = ideal(hompols.-1)
         return J
     elseif typeof(input) == Vector{QQMPolyRingElem}
         f = input
         M,F = unimod_matrix_from_polynomials(f)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,1),:z=>1:1)
+        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
         hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
         J = ideal(hompols.-1)
         return J
