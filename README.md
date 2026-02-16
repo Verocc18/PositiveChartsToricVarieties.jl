@@ -1,7 +1,7 @@
 # PositiveChartsToricVarieties
 
 
-PositiveChartsToricVarieties is a Julia package to compute positive charts of toric varieties. A detailed documentation is available at accompanying the Zenodo page for our paper "Positive charts of toric varieties".
+PositiveChartsToricVarieties is a Julia package to compute positive charts of toric varieties. A detailed documentation is available at accompanying the Zenodo page [PositiveChartsToricVarieties](https://zenodo.org/records/18613405).
 
 ## Installation
 
