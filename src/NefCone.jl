@@ -23,11 +23,11 @@ function homogenize(g::QQMPolyRingElem, F::ZZMatrix; cox_vars = [])
     exps = [Int.([transpose(F[:,i])*m+D[i] for i = 1:k]) for m in exponents(g)]
     coeffs = collect(coefficients(g))
     if isempty(cox_vars)
-        S, y = polynomial_ring(QQ,:y=>1:k)
+        S, u = polynomial_ring(QQ,:u=>1:k)
     else
-        y = cox_vars
+        u = cox_vars
     end
-    return sum(coeffs[i]*prod(y.^exps[i]) for i = 1:length(coeffs))
+    return sum(coeffs[i]*prod(u.^exps[i]) for i = 1:length(coeffs))
 end
 
 # Standard basis vector of dimension n with 1 in position i
@@ -269,30 +269,30 @@ function test_sat_conjecture(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     if typeof(input) == Polyhedron{QQFieldElem}
         P = input
         f, M, F = unimod_nef_polynomials(P)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
-        hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
+        S, u, z = polynomial_ring(QQ,:u=>1:size(F,2),:z=>1:1)
+        hompols = [homogenize(ff,F; cox_vars = u) for ff in f]
         J = ideal(hompols.-1)
-        I = eliminate(J+ideal([y[1]*z[1]-1]),z)
+        I = eliminate(J+ideal([u[1]*z[1]-1]),z)
         for i in 2:size(F,1)
-            I = eliminate(I+ideal([y[i]*z[1]-1]),z)
+            I = eliminate(I+ideal([u[i]*z[1]-1]),z)
         end
         return (I == J, I, J)
     elseif typeof(input) == Vector{QQMPolyRingElem}
         f = input
         M,F = unimod_matrix_from_polynomials(f)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
-        hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
+        S, u, z = polynomial_ring(QQ,:u=>1:size(F,2),:z=>1:1)
+        hompols = [homogenize(ff,F; cox_vars = u) for ff in f]
         J = ideal(hompols.-1)
-        I = eliminate(J+ideal([y[1]*z[1]-1]),z)
-        for i in 2:(size(F,1)-1)
-            I = eliminate(I+ideal([y[i]*z[1]-1]),z)
+        I = eliminate(J+ideal([u[1]*z[1]-1]),z)
+        for i in 2:(size(F,2)-1)
+            I = eliminate(I+ideal([u[i]*z[1]-1]),z)
         end
         return (I == J, I, J)
     end  
 end
 
 # Given a polytope or a list of polynomials returns our parametrization \varphi
-function parameterization_Y(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
+function parameterization_U(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     if typeof(input) == Polyhedron{QQFieldElem}
         P = input
         f, M, F = unimod_nef_polynomials(P)
@@ -307,20 +307,20 @@ function parameterization_Y(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     return varphi
 end
 
-# Given a list of polynomials or polytope returns the ideal of our variety Y
-function Y_variety(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
+# Given a list of polynomials or polytope returns the ideal of our variety U
+function U_variety(input::Union{Polyhedron,Vector{QQMPolyRingElem}})
     if typeof(input) == Polyhedron{QQFieldElem}
         P = input
         f, M, F = unimod_nef_polynomials(P)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
-        hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
+        S, u, z = polynomial_ring(QQ,:u=>1:size(F,2),:z=>1:1)
+        hompols = [homogenize(ff,F; cox_vars = u) for ff in f]
         J = ideal(hompols.-1)
         return J
     elseif typeof(input) == Vector{QQMPolyRingElem}
         f = input
         M,F = unimod_matrix_from_polynomials(f)
-        S, y, z = polynomial_ring(QQ,:y=>1:size(F,2),:z=>1:1)
-        hompols = [homogenize(ff,F; cox_vars = y) for ff in f]
+        S, u, z = polynomial_ring(QQ,:u=>1:size(F,2),:z=>1:1)
+        hompols = [homogenize(ff,F; cox_vars = u) for ff in f]
         J = ideal(hompols.-1)
         return J
     end  
